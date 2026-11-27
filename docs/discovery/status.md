@@ -14,7 +14,7 @@ Status values: `not started`, `in progress`, `done`, `dropped` (with the decisio
 | 6 | MVP and roadmap | not started | |
 | 7 | Prototype | not started | |
 | 8 | Architecture handoff | not started | |
-| 9 | Decision log current | not started | |
+| 9 | Decision log current | done | D-001 |
 
 ## Risks and things not checked
 
