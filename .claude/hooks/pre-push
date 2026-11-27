@@ -1,0 +1,5 @@
+#!/bin/sh
+# Git pre-push hook: no push of a code change without a passing review and QA result for HEAD
+# (`.claude/hooks/verdict.mjs`). `studio-sync.mjs hooks` turns it on (core.hooksPath), like pre-commit.
+# Shared studio harness file: change it in app-studio, not in an app.
+exec node "$(git rev-parse --show-toplevel)/.claude/hooks/verdict.mjs" check --push
