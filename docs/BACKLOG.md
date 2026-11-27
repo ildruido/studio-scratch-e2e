@@ -1,6 +1,8 @@
 # Backlog
 
 ## In progress
+
+## To test
 ### TS-001 Split a bill with a tip
 - Why: Someone at the table gets each person's share in a few taps.
 - Acceptance criteria:
@@ -9,8 +11,6 @@
   - [ ] Given the tip buttons 15%, 18% and 20%, when I type my own percentage instead, then the share uses my percentage.
   - [ ] Given no bill or fewer than 1 person, when I look at the result, then a short hint is shown instead of a share.
 - Notes: plain module for the share maths with unit tests; no capability needed.
-
-## To test
 
 ## Ready
 ### TS-002 Remember my last tip and group size
