@@ -1,0 +1,165 @@
+name: CI
+
+# One run per change: pull requests, and main after a merge. What runs depends on what changed:
+#   docs     only Markdown or .claude/  -> nothing to build or test (seconds)
+#   release  Markdown + version bump    -> format, lint, unit tests, build; no browser tests
+#   code     anything else              -> everything, including the browser tests
+# Markdown-only and harness-only (.claude/) changes count as docs: on a PR only the quick "CI gate"
+# job runs, and on main they start no run; draft PRs wait until marked ready ("CI gate" fails on them);
+# main runs the quick checks only after a merge (the PR already ran the browser tests), and the full
+# suite runs on main by hand ("Run workflow") before a release.
+# Stack: artifact pack (app-studio). Once e2e takes over ~4 minutes, split it with a matrix:
+#   strategy: { fail-fast: false, matrix: { shard: [1, 2, 3] } } and add --shard=${{ matrix.shard }}/3.
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ["**.md", ".claude/**"]
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  # A newer push replaces an older PR run; every merge to main gets its own finished run.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    if: github.event.pull_request.draft != true
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      kind: ${{ steps.kind.outputs.kind }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: What changed
+        id: kind
+        env:
+          # A PR checks out its merge into main, so the first parent is exactly what main holds.
+          BASE: ${{ github.event_name == 'pull_request' && 'HEAD^1' || github.event.before }}
+        run: |
+          kind=code
+          if [ "${{ github.event_name }}" != workflow_dispatch ] && git cat-file -e "$BASE^{commit}" 2>/dev/null; then
+            files=$(git diff --no-renames --name-only "$BASE" HEAD)
+            other=$(echo "$files" | grep -vE '\.md$|^\.claude/' || true)
+            if [ -z "$other" ]; then
+              kind=docs
+            elif [ -z "$(echo "$other" | grep -vxE 'package(-lock)?\.json' || true)" ] \
+              && [ -z "$(git diff --no-renames -U0 "$BASE" HEAD -- package.json package-lock.json \
+                | grep -E '^[-+][^-+]' | grep -vE '^[-+]\s*"version": "[^"]+",?$' || true)" ]; then
+              kind=release
+            fi
+          fi
+          echo "kind=$kind" >> "$GITHUB_OUTPUT"
+          echo "Change kind: $kind"
+
+  # Tight limits on purpose: a job that runs long has a problem to fix, not a limit to raise.
+  check:
+    needs: changes
+    if: needs.changes.outputs.kind != 'docs'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      # Keys must never be committed: scan the repository (not the lock files or this workflow).
+      - name: Scan for keys
+        run: |
+          ! git grep -nEI 'sk-ant-[A-Za-z0-9_-]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{30,}' -- . ':!package-lock.json' ':!.github/workflows/ci.yml'
+
+      - name: Audit dependencies (what ships, high and critical)
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Format
+        run: npm run format:check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Build the artifact (typecheck + single-file bundle)
+        run: npm run build:artifact
+
+      - name: Check the bundle (one file, under the artifact limit, no keys)
+        run: |
+          test "$(find dist-artifact -type f | wc -l)" -eq 1
+          size=$(stat -c %s dist-artifact/index.html)
+          echo "dist-artifact/index.html is $size bytes"
+          test "$size" -lt 16000000
+          ! grep -rEl 'sk-ant-|-----BEGIN [A-Z ]*PRIVATE KEY' dist-artifact
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-${{ github.sha }}
+          retention-days: 3
+          path: dist-artifact/index.html
+
+  e2e:
+    needs: changes
+    if: needs.changes.outputs.kind == 'code' && github.event_name != 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      # The runner image already has every library Chromium needs; --with-deps only adds fonts and can be slow.
+      - name: Install Playwright browser
+        timeout-minutes: 2
+        run: npx playwright install chromium
+
+      - name: E2E tests (builds the artifact first)
+        timeout-minutes: 7
+        run: npm run test:e2e
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report-${{ github.sha }}
+          retention-days: 3
+          path: playwright-report/
+          if-no-files-found: ignore
+
+  # The one check main's ruleset requires (with Harness's "health"), so a PR can merge by itself
+  # (auto-merge) once it is green. It runs on every PR: a job that was rightly skipped counts as
+  # passed, anything failed or cancelled fails it, and a draft never passes.
+  gate:
+    name: CI gate
+    if: always()
+    needs: [changes, check, e2e]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Every job passed or was rightly skipped; drafts never pass
+        env:
+          DRAFT: ${{ github.event.pull_request.draft == true }}
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "Job results: $RESULTS"
+          if [ "$DRAFT" = true ]; then echo "Draft PR: mark it ready to run the checks."; exit 1; fi
+          for r in $RESULTS; do case "$r" in success|skipped) ;; *) exit 1 ;; esac; done

@@ -1,0 +1,25 @@
+{
+  "rules": [
+    {
+      "id": "ai-code-without-module",
+      "severity": "blocking",
+      "message": "AI call in app code but the ai module is not installed (the App profile says AI is off)",
+      "paths": [
+        "^src/",
+        "^server/src/"
+      ],
+      "except": [
+        "^src/platform/",
+        "^src/.*\\.d\\.ts$"
+      ],
+      "added": "\\.sample\\(|api\\.anthropic\\.com|@anthropic-ai/",
+      "unlessPack": [
+        "ai",
+        "ai-web"
+      ]
+    }
+  ],
+  "risky": [
+    "^src/platform/"
+  ]
+}

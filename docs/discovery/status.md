@@ -1,5 +1,7 @@
 # Discovery status
 
+> **Frozen on 2026-11-27.** Discovery ended when the App Creator said "start building". This file is history and is no longer updated: the plan is now `docs/BACKLOG.md`.
+
 Tracker for the discovery exit criteria (the list and what "done" means: `.claude/packs/discovery/exit-criteria.md`, plus any change in the Discovery profile's Exit criteria row). Each document's PR updates its own row.
 
 Status values: `not started`, `in progress`, `done`, `dropped` (with the decision id).

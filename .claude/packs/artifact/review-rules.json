@@ -1,0 +1,47 @@
+{
+  "rules": [
+    {
+      "id": "window-claude-outside-platform",
+      "severity": "blocking",
+      "message": "window.claude used outside src/platform/",
+      "paths": [
+        "^src/"
+      ],
+      "except": [
+        "^src/platform/"
+      ],
+      "added": "window\\.claude|\\bwindow\\[.claude.\\]"
+    },
+    {
+      "id": "sample-in-timer-or-loop",
+      "severity": "blocking",
+      "message": "sample() in a timer or loop: AI calls only from a user action, never automatically",
+      "paths": [
+        "^src/"
+      ],
+      "except": [
+        "^src/platform/"
+      ],
+      "added": "(setInterval|setTimeout|requestAnimationFrame|\\bfor\\s*\\(|\\bwhile\\s*\\().*\\.sample\\("
+    },
+    {
+      "id": "host-off-allowlist",
+      "severity": "blocking",
+      "message": "loads from a host that is not cdnjs, jsdelivr, unpkg or Google Fonts",
+      "paths": [
+        "^src/",
+        "^index\\.html$"
+      ],
+      "hostsExcept": [
+        "cdnjs.cloudflare.com",
+        "cdn.jsdelivr.net",
+        "unpkg.com",
+        "fonts.googleapis.com",
+        "fonts.gstatic.com"
+      ]
+    }
+  ],
+  "risky": [
+    "^src/platform/"
+  ]
+}

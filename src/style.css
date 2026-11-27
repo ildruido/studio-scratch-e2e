@@ -1,0 +1,42 @@
+/* Every colour is a token: light values here, dark values below, so the page reads in both themes
+   (an artifact is shown in the viewer's theme; the body background must be explicit). */
+:root {
+  color-scheme: light;
+  --bg: #fafaf8;
+  --fg: #1d1d1b;
+  --muted: #5c5c57;
+  --warn: #b3261e;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #161614;
+    --fg: #ececea;
+    --muted: #a3a39c;
+    --warn: #f2b8b5;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #161614;
+  --fg: #ececea;
+  --muted: #a3a39c;
+  --warn: #f2b8b5;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font:
+    1rem/1.5 system-ui,
+    sans-serif;
+}
+.wrap {
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: 1rem;
+}
+.eyebrow {
+  margin: 0;
+  color: var(--muted);
+}
