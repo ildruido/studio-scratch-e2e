@@ -1,0 +1,32 @@
+name: Harness
+
+# Harness health, before any code: the shared studio files are unedited, the App profile is filled
+# in, the hooks are wired, the app's own skills and agents are well formed, and doc links resolve.
+# Runs on every PR, so main's ruleset can require it ("health") and PRs can merge by themselves;
+# seconds, no install.
+# Being behind app-studio never fails it: the session-start check reports that.
+# Stack: base pack (app-studio). The same check runs before every commit Claude makes.
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+
+concurrency:
+  group: harness-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - run: node .claude/studio/studio-sync.mjs health

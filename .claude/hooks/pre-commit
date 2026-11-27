@@ -1,0 +1,5 @@
+#!/bin/sh
+# Git pre-commit hook: the studio harness health check before every commit, whoever makes it and
+# whichever folder the session started in. `studio-sync.mjs hooks` turns it on (core.hooksPath).
+# Shared studio harness file: change it in app-studio, not in an app.
+exec node "$(git rev-parse --show-toplevel)/.claude/studio/studio-sync.mjs" health
