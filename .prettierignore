@@ -1,0 +1,13 @@
+dist-artifact
+dist-web
+coverage
+playwright-report
+test-results
+package-lock.json
+# Docs are written for people; Prettier would only churn their tables.
+*.md
+# Hand-written prototypes saved by discovery are throwaway HTML, not source.
+docs/**/*.html
+# The shared harness is checked in app-studio.
+.claude
+server/dist

@@ -9,18 +9,18 @@ The skills and agents in `.claude/` are the shared studio harness. They know not
 | Field          | Value                                                                       |
 | -------------- | --------------------------------------------------------------------------- |
 | App            | Tip Splitter |
-| Phase          | discovery |
+| Phase          | build |
 | Id prefix      | `TS` |
-| Stack          | TBD (decided at build start) |
+| Stack          | artifact |
 | User           | Someone splitting a restaurant bill with friends                 |
 | Repo           | https://github.com/ildruido/studio-scratch-e2e (private) |
-| Release target | TBD (decided at build start) |
-| Preview target | TBD (decided at build start) |
-| Capabilities   | TBD (decided at build start) |
+| Release target | a private Claude artifact (link recorded at v0.1.0) |
+| Preview target | none |
+| Capabilities   | {"db": {}} (saved last tip and group size) |
 | AI             | off |
-| AI plan        | TBD (decided at build start) |
-| Access model   | TBD (decided at build start) |
-| Storage shape  | TBD (decided at build start) |
+| AI plan        | none |
+| Access model   | whoever the owner shares it with (artifact app) |
+| Storage shape  | per-person documents |
 | Decision log   | `docs/discovery/decision-log.md` |
 | Owner-merged repos | `none` |
 | AI public use  | not needed (AI off) |
@@ -31,32 +31,18 @@ The skills and agents in `.claude/` are the shared studio harness. They know not
 
 Rules about this app's subject that every plan, prompt and diff must respect (the reviewer treats a breach as blocking).
 
-TBD (decided at build start)
+- Share = (bill + tip) divided by the number of people, rounded up to the cent: shares never add up to less than the total.
+- Tip is a preset (15%, 18%, 20%) or a custom percentage (D-001); the number of people is at least 1.
+- No sign-in, no AI. Last tip and group size are saved per person in `db`; the page still renders and calculates if `db` is absent.
 
 ### Stack notes
 
 Skills say "the stack notes" for this list **plus** each pack's docs in `.claude/packs/<name>/` (`STACK.md`, `RELEASE.md`, `QA.md`, `REVIEW.md`). Keep only what is specific to this app.
 
-- **Build:** TBD (decided at build start)
-- **QA:** TBD (decided at build start)
-- **Release:** TBD (decided at build start)
-- **Preview:** TBD (decided at build start)
-
-## Discovery profile
-
-The discovery skills are generic: they read this section for everything about this product. Keep it current as the documents evolve (`node .claude/hooks/app-setup.mjs discovery-profile set "Row=value"`). What each row means: `.claude/packs/discovery/STACK.md`.
-
-| Field | Value |
-| --- | --- |
-| Product        | A one-page tip splitter: enter the bill, tip percentage and number of people, see each person's share |
-| Target users   | People splitting a restaurant bill with friends |
-| Starting idea  | `docs/discovery/starting-idea.md` (a starting point, not a fixed plan) |
-| Docs folder    | `docs/discovery/` |
-| Sign-off mode  | per artifact |
-| Exit criteria  | default |
-| Principles     | One screen, no sign-in; show the working; never round down |
-| Domain risks   | not set yet |
-| Prototype look and feel | not set yet |
+- **Build:** `npm run build` produces one `dist-artifact/index.html` (< 16 MB).
+- **QA:** see `.claude/packs/artifact/QA.md`; fake `db` in e2e; share maths unit-tested with fixed numbers.
+- **Release:** `.claude/packs/artifact/RELEASE.md`, capabilities `{"db": {}}`.
+- **Preview:** none.
 
 ## Roles
 
