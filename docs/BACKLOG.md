@@ -1,10 +1,6 @@
 # Backlog
 
 ## In progress
-
-## To test
-
-## Ready
 ### TS-001 Split a bill with a tip
 - Why: Someone at the table gets each person's share in a few taps.
 - Acceptance criteria:
@@ -14,6 +10,9 @@
   - [ ] Given no bill or fewer than 1 person, when I look at the result, then a short hint is shown instead of a share.
 - Notes: plain module for the share maths with unit tests; no capability needed.
 
+## To test
+
+## Ready
 ### TS-002 Remember my last tip and group size
 - Why: Next visit starts where the last one ended.
 - Acceptance criteria:
