@@ -6,7 +6,7 @@ Status values: `not started`, `in progress`, `done`, `dropped` (with the decisio
 
 | # | Exit criterion | Status | Notes |
 | --- | --- | --- | --- |
-| 1 | Product foundation | not started | |
+| 1 | Product foundation | done | D-001 |
 | 2 | Target users and personas | not started | |
 | 3 | Riskiest hypotheses | not started | |
 | 4 | Success metrics | not started | |

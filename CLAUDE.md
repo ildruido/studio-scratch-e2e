@@ -54,7 +54,7 @@ The discovery skills are generic: they read this section for everything about th
 | Docs folder    | `docs/discovery/` |
 | Sign-off mode  | per artifact |
 | Exit criteria  | default |
-| Principles     | not set yet |
+| Principles     | One screen, no sign-in; show the working; never round down |
 | Domain risks   | not set yet |
 | Prototype look and feel | not set yet |
 
